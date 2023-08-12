@@ -2,4 +2,9 @@
     <string name="app_name">nice_login</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="forgot_password">Reset Password</string>
+    <string name="reset_password_hint">Enter your email, please</string>
+    <string name="email">Email</string>
+    <string name="confirm">Confirm</string>
+    <string name="click_to_login">Click to login</string>
 </resources>

@@ -1,81 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:padding="18dp"
     tools:context=".SignupTabFragment">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="220dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="18dp"
+        android:src="@drawable/signimg" />
+
+    <EditText
+        android:id="@+id/signup_email"
+        android:layout_width="300dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="7dp"
+        android:background="@drawable/edittext_bkg"
+        android:drawableLeft="@drawable/baseline_email_24"
+        android:drawablePadding="8dp"
+        android:hint="Email"
+        android:inputType="textEmailAddress"
+        android:padding="8dp" />
+
+    <EditText
+        android:id="@+id/signup_password"
+        android:layout_width="300dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/edittext_bkg"
+        android:drawableLeft="@drawable/baseline_lock_24"
+        android:drawablePadding="8dp"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:padding="8dp" />
+
+    <EditText
+        android:id="@+id/signup_confirm"
+        android:layout_width="300dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/edittext_bkg"
+        android:drawableLeft="@drawable/baseline_password_24"
+        android:drawablePadding="8dp"
+        android:hint="Confirm Password"
+        android:inputType="textPassword"
+        android:padding="8dp" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_gravity="center"
+        android:visibility="gone" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="20dp"
-            android:padding="20dp">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="200dp"
-                android:src="@drawable/signimg"/>
-
-            <EditText
-                android:layout_width="300dp"
-                android:layout_height="60dp"
-                android:layout_gravity="center"
-                android:id="@+id/signup_email"
-                android:layout_marginTop="30dp"
-                android:padding="8dp"
-                android:inputType="textEmailAddress"
-                android:hint="Email"
-                android:drawableLeft="@drawable/baseline_email_24"
-                android:drawablePadding="8dp"
-                android:background="@drawable/edittext_bkg"/>
-
-            <EditText
-                android:layout_width="300dp"
-                android:layout_height="60dp"
-                android:layout_gravity="center"
-                android:id="@+id/signup_password"
-                android:layout_marginTop="20dp"
-                android:padding="8dp"
-                android:hint="Password"
-                android:inputType="textPassword"
-                android:drawableLeft="@drawable/baseline_lock_24"
-                android:drawablePadding="8dp"
-                android:background="@drawable/edittext_bkg"/>
-
-            <EditText
-                android:layout_width="300dp"
-                android:layout_height="60dp"
-                android:layout_gravity="center"
-                android:id="@+id/signup_confirm"
-                android:layout_marginTop="20dp"
-                android:padding="8dp"
-                android:hint="Confirm Password"
-                android:inputType="textPassword"
-                android:drawableLeft="@drawable/baseline_password_24"
-                android:drawablePadding="8dp"
-                android:background="@drawable/edittext_bkg"/>
-
-            <Button
-                android:layout_width="300dp"
-                android:layout_height="70dp"
-                android:layout_gravity="center"
-                android:layout_marginTop="30dp"
-                android:id="@+id/signup_button"
-                android:textSize="18sp"
-                android:text="Signup"
-                app:cornerRadius = "30dp"/>
-
-        </LinearLayout>
-
-    </LinearLayout>
+    <Button
+        android:id="@+id/signup_button"
+        android:layout_width="300dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="27dp"
+        android:text="Signup"
+        android:textSize="18sp"
+        app:cornerRadius="30dp" />
 
 </LinearLayout>
