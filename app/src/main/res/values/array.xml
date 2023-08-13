@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="error_correction_levels">
+        <item>L - 7% Data Recovery</item>
+        <item>M - 15% Data Recovery</item>
+        <item>Q - 25% Data Recovery</item>
+        <item>H - 30% Data Recovery</item>
+    </string-array>
+</resources>

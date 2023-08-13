@@ -72,7 +72,7 @@ public class LoginTabFragment extends Fragment {
 
             fAuth.signInWithEmailAndPassword(emailInput, passwordInput).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
-                    Intent intent = new Intent(getActivity(), EmailVerification.class);
+                    Intent intent = new Intent(getActivity(), MainActivity.class);
                     startActivity(intent);
                     if (getActivity() != null)
                         getActivity().finish();
