@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -85,35 +86,39 @@ public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
 
         holder.delete.setOnClickListener(view -> {
-            String imgURL = dataList.get(holder.getAdapterPosition()).getDataImage();
-            String key = dataList.get(holder.getAdapterPosition()).getKey();
+            new AlertDialog.Builder(context)
+                    .setTitle("Delete Confirmation")
+                    .setMessage("Are you sure you want to delete the collection: " + dataList.get(holder.getAdapterPosition()).getDataTitle() + "?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        holder.delete.setVisibility(View.GONE);
+                        holder.edit.setVisibility(View.GONE);
+                        String imgURL = dataList.get(holder.getAdapterPosition()).getDataImage();
+                        String key = dataList.get(holder.getAdapterPosition()).getKey();
 
-            DatabaseReference nodeToDelete = FirebaseDatabase.getInstance().getReference(uid).child(key);
+                        DatabaseReference nodeToDelete = FirebaseDatabase.getInstance().getReference(uid).child(key);
 
-            nodeToDelete.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    String contentUrl;
-                    for (DataSnapshot timestampSnapshot : dataSnapshot.getChildren()) {
-                        if (timestampSnapshot.hasChild("dataPath")) {
-                            contentUrl = timestampSnapshot.child("dataPath").getValue(String.class);
-                            FirebaseStorage.getInstance().getReferenceFromUrl(contentUrl).delete().addOnFailureListener(e -> Log.e("TAG", "onFailure: did not delete file: " + e.getMessage()));
-                        }
-                    }
-                    contentUrl = dataSnapshot.child("dataImage").getValue(String.class);
-                    if (contentUrl == null)
-                        Log.e("TAG", "onDataChange: contentUrl is null");
-                    if (!"".equals(imgURL)) {
-                        FirebaseStorage.getInstance().getReferenceFromUrl(imgURL).delete().addOnFailureListener(e -> Log.e("TAG", "onFailure: did not delete collection image: " + e.getMessage()));
-                    }
-                    nodeToDelete.removeValue();
-                }
+                        nodeToDelete.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                for (DataSnapshot timestampSnapshot : dataSnapshot.getChildren()) {
+                                    if (timestampSnapshot.hasChild("dataPath")) {
+                                        String contentUrl = timestampSnapshot.child("dataPath").getValue(String.class);
+                                        FirebaseStorage.getInstance().getReferenceFromUrl(contentUrl).delete().addOnFailureListener(e -> Log.e("TAG", "onFailure: did not delete file: " + e.getMessage()));
+                                    }
+                                }
+                                if (!"".equals(imgURL))
+                                    FirebaseStorage.getInstance().getReferenceFromUrl(imgURL).delete().addOnFailureListener(e -> Log.e("TAG", "onFailure: did not delete collection image: " + e.getMessage()));
+                                nodeToDelete.removeValue();
+                            }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Toast.makeText(context, "Failed to delete collection: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                Toast.makeText(context, "Failed to delete collection: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
         });
     }
 
