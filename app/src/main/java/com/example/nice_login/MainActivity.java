@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         adapter = new MyAdapter(MainActivity.this, dataList);
         recyclerView.setAdapter(adapter);
 
-        databaseReference = FirebaseDatabase.getInstance("https://booqr-3cb0a-default-rtdb.europe-west1.firebasedatabase.app/").getReference("UID");
+        databaseReference = FirebaseDatabase.getInstance("https://booqr-3cb0a-default-rtdb.europe-west1.firebasedatabase.app/").getReference(fAuth.getCurrentUser().getUid());
         if (!isFinishing()) {
             dialog.show();
         }

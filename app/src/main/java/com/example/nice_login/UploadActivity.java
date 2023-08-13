@@ -2,7 +2,6 @@ package com.example.nice_login;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -26,8 +26,10 @@ public class UploadActivity extends AppCompatActivity {
     ImageView uploadImage;
     Button saveButton;
     EditText collectionName, bookName;
-    String imageURL, timestamp, collection, book;
+    String imageURL, timestamp, collection, book, uid;
     Uri uri;
+    AlertDialog dialog;
+    FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,13 +39,18 @@ public class UploadActivity extends AppCompatActivity {
         bookName = findViewById(R.id.bookName);
         collectionName = findViewById(R.id.collectionName);
         saveButton = findViewById(R.id.saveButton);
+        mAuth = FirebaseAuth.getInstance();
+        uid = mAuth.getCurrentUser().getUid();
+
         ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent data = result.getData();
-                        uri = data.getData();
-                        uploadImage.setImageURI(uri);
+                        if (data != null) {
+                            uri = data.getData();
+                            uploadImage.setImageURI(uri);
+                        }
                     } else {
                         Toast.makeText(UploadActivity.this, "No Image Selected", Toast.LENGTH_SHORT).show();
                     }
@@ -58,9 +65,6 @@ public class UploadActivity extends AppCompatActivity {
     }
 
     public void saveData() {
-        if (uri == null) {
-            uri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + getResources().getResourcePackageName(R.drawable.books) + '/' + getResources().getResourceTypeName(R.drawable.books) + '/' + getResources().getResourceEntryName(R.drawable.books));
-        }
         collection = collectionName.getText().toString();
         book = bookName.getText().toString();
         if (collection.isEmpty()) {
@@ -70,24 +74,31 @@ public class UploadActivity extends AppCompatActivity {
         }
 
         timestamp = String.valueOf(Instant.now().getEpochSecond());
-        StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("UID")
+        StorageReference storageReference = FirebaseStorage.getInstance().getReference(uid)
                 .child(timestamp);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(UploadActivity.this);
         builder.setCancelable(false);
         builder.setView(R.layout.progress_layout);
-        AlertDialog dialog = builder.create();
+        dialog = builder.create();
         dialog.show();
+
+        if (uri == null) {
+            imageURL = "";
+            uploadData();
+            return;
+        }
 
         storageReference.putFile(uri).addOnSuccessListener(taskSnapshot -> {
             Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
-            uriTask.addOnSuccessListener(uri -> {
-                imageURL = uri.toString();
-                uploadData();
-                dialog.dismiss();
-            }).addOnFailureListener(e -> {
-                dialog.dismiss();
-                Toast.makeText(UploadActivity.this, "Error uploading image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            uriTask.addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    imageURL = uri.toString();
+                    uploadData();
+                } else {
+                    dialog.dismiss();
+                    Toast.makeText(UploadActivity.this, "Error uploading image: " + task.getException(), Toast.LENGTH_SHORT).show();
+                }
             });
         }).addOnFailureListener(e -> {
             dialog.dismiss();
@@ -97,12 +108,15 @@ public class UploadActivity extends AppCompatActivity {
 
     public void uploadData() {
         DataClass dataClass = new DataClass(collection, book, imageURL, timestamp);
-        FirebaseDatabase.getInstance().getReference("UID").child(timestamp)
+        FirebaseDatabase.getInstance().getReference(uid).child(timestamp)
                 .setValue(dataClass).addOnCompleteListener(task -> {
+                    dialog.dismiss();
                     if (task.isSuccessful()) {
                         Toast.makeText(UploadActivity.this, "Saved", Toast.LENGTH_SHORT).show();
                         finish();
+                    } else {
+                        Toast.makeText(UploadActivity.this, "Error creating collection: " + task.getException(), Toast.LENGTH_SHORT).show();
                     }
-                }).addOnFailureListener(e -> Toast.makeText(UploadActivity.this, "Error creating collection: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                });
     }
 }
