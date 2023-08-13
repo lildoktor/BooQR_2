@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -28,12 +29,14 @@ public class UpdateActivity extends AppCompatActivity {
     ImageView updateImage;
     Button updateButton;
     EditText updateDesc, updateTitle;
-    String title, desc, lang;
+    String collection, desc, uid;
     String imageUrl;
     String key, oldImageURL;
     Uri uri;
     DatabaseReference databaseReference;
     StorageReference storageReference;
+    FirebaseAuth fAuth;
+    AlertDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,28 +47,34 @@ public class UpdateActivity extends AppCompatActivity {
         updateDesc = findViewById(R.id.updateDesc);
         updateImage = findViewById(R.id.updateImage);
         updateTitle = findViewById(R.id.updateTitle);
-        uri = null;
-        ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK) {
-                        Intent data = result.getData();
-                        uri = data.getData();
-                        updateImage.setImageURI(uri);
-                    } else {
-                        Toast.makeText(UpdateActivity.this, "No Image Selected", Toast.LENGTH_SHORT).show();
-                    }
-                }
-        );
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            Glide.with(UpdateActivity.this).load(bundle.getString("Image")).into(updateImage);
+            if ("".equals(bundle.getString("Image")))
+                updateImage.setImageResource(R.drawable.books);
+            else
+                Glide.with(UpdateActivity.this).load(bundle.getString("Image")).into(updateImage);
             updateTitle.setText(bundle.getString("Title"));
             updateDesc.setText(bundle.getString("Description"));
             key = bundle.getString("Key");
             oldImageURL = bundle.getString("Image");
         }
-        databaseReference = FirebaseDatabase.getInstance().getReference("UID").child(key);
+        fAuth = FirebaseAuth.getInstance();
+        uid = fAuth.getCurrentUser().getUid();
+
+        ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            uri = data.getData();
+                            updateImage.setImageURI(uri);
+                        }
+                    } else {
+                        Toast.makeText(UpdateActivity.this, "No Image Selected", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
 
         updateImage.setOnClickListener(view -> {
             Intent photoPicker = new Intent(Intent.ACTION_PICK);
@@ -74,51 +83,61 @@ public class UpdateActivity extends AppCompatActivity {
         });
         updateButton.setOnClickListener(view -> {
             saveData();
-            Intent intent = new Intent(UpdateActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();
         });
     }
 
     public void saveData() {
-        if (uri == null) {
-            imageUrl = oldImageURL;
-            updateData();
+        collection = updateTitle.getText().toString();
+        desc = updateDesc.getText().toString();
+        if (collection.isEmpty()) {
+            updateTitle.setError("Enter Collection Name");
+            updateTitle.requestFocus();
             return;
         }
-        storageReference = FirebaseStorage.getInstance().getReference().child("UID").child(uri.getLastPathSegment());
+
+        storageReference = FirebaseStorage.getInstance().getReference().child(uid).child(key);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(UpdateActivity.this);
         builder.setCancelable(false);
         builder.setView(R.layout.progress_layout);
-        AlertDialog dialog = builder.create();
+        dialog = builder.create();
         dialog.show();
+
+        if (uri == null) {
+            imageUrl = "";
+            updateData();
+            return;
+        }
 
         storageReference.putFile(uri).addOnSuccessListener(taskSnapshot -> {
             Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
-            while (!uriTask.isComplete()) ;
-            Uri urlImage = uriTask.getResult();
-            imageUrl = urlImage.toString();
-            updateData();
+            uriTask.addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    imageUrl = uri.toString();
+                    updateData();
+                } else {
+                    dialog.dismiss();
+                    Toast.makeText(UpdateActivity.this, "Error uploading image: " + task.getException(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }).addOnFailureListener(e -> {
             dialog.dismiss();
-        }).addOnFailureListener(e -> dialog.dismiss());
+            Toast.makeText(UpdateActivity.this, "Error uploading image: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        });
     }
 
     public void updateData() {
-        title = updateTitle.getText().toString();
-        desc = updateDesc.getText().toString();
         String time = String.valueOf(Instant.now().getEpochSecond());
-        DataClass dataClass = new DataClass(title, desc, imageUrl, time);
-
-        databaseReference.setValue(dataClass).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                if (uri != null) {
-                    StorageReference reference = FirebaseStorage.getInstance().getReferenceFromUrl(oldImageURL);
-                    reference.delete();
-                }
-                Toast.makeText(UpdateActivity.this, "Updated", Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        }).addOnFailureListener(e -> Toast.makeText(UpdateActivity.this, e.getMessage().toString(), Toast.LENGTH_SHORT).show());
+        DataClass dataClass = new DataClass(collection, desc, imageUrl, time);
+        FirebaseDatabase.getInstance().getReference(uid).child(key)
+                .setValue(dataClass).addOnCompleteListener(task -> {
+                    dialog.dismiss();
+                    if (task.isSuccessful()) {
+                        Toast.makeText(UpdateActivity.this, "Saved", Toast.LENGTH_SHORT).show();
+                        finish();
+                    } else {
+                        Toast.makeText(UpdateActivity.this, "Error creating collection: " + task.getException(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

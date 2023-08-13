@@ -1,11 +1,12 @@
 package com.example.nice_login;
 
 
+import android.content.Intent;
+import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.viewpager2.widget.ViewPager2;
-
-import android.os.Bundle;
 
 import com.google.android.material.tabs.TabLayout;
 
@@ -56,4 +57,13 @@ public class LoginSignUpActivity extends AppCompatActivity {
         });
 
     }
+
+    @Override
+    public void onBackPressed() {
+        Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+        homeIntent.addCategory(Intent.CATEGORY_HOME);
+        homeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(homeIntent);
+    }
+
 }

@@ -25,8 +25,8 @@ import java.time.Instant;
 public class UploadActivity extends AppCompatActivity {
     ImageView uploadImage;
     Button saveButton;
-    EditText collectionName, bookName;
-    String imageURL, timestamp, collection, book, uid;
+    EditText collectionName, descName;
+    String imageURL, timestamp, collection, desc, uid;
     Uri uri;
     AlertDialog dialog;
     FirebaseAuth mAuth;
@@ -36,7 +36,7 @@ public class UploadActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload);
         uploadImage = findViewById(R.id.uploadImage);
-        bookName = findViewById(R.id.bookName);
+        descName = findViewById(R.id.bookName);
         collectionName = findViewById(R.id.collectionName);
         saveButton = findViewById(R.id.saveButton);
         mAuth = FirebaseAuth.getInstance();
@@ -66,7 +66,7 @@ public class UploadActivity extends AppCompatActivity {
 
     public void saveData() {
         collection = collectionName.getText().toString();
-        book = bookName.getText().toString();
+        desc = descName.getText().toString();
         if (collection.isEmpty()) {
             collectionName.setError("Enter Collection Name");
             collectionName.requestFocus();
@@ -107,7 +107,7 @@ public class UploadActivity extends AppCompatActivity {
     }
 
     public void uploadData() {
-        DataClass dataClass = new DataClass(collection, book, imageURL, timestamp);
+        DataClass dataClass = new DataClass(collection, desc, imageURL, timestamp);
         FirebaseDatabase.getInstance().getReference(uid).child(timestamp)
                 .setValue(dataClass).addOnCompleteListener(task -> {
                     dialog.dismiss();

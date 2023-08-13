@@ -2,6 +2,8 @@ package com.example.nice_login;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -11,6 +13,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.clans.fab.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,7 +31,8 @@ public class MainActivity2 extends AppCompatActivity {
     List<DataClass2> dataList;
     MyAdapter2 adapter;
     SearchView searchView;
-    String key;
+    String key, uid;
+    FirebaseAuth fAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,10 +48,12 @@ public class MainActivity2 extends AppCompatActivity {
         searchView = findViewById(R.id.search);
         searchView.clearFocus();
 
-
+        fAuth = FirebaseAuth.getInstance();
+        uid = fAuth.getCurrentUser().getUid();
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             key = bundle.getString("Key");
+            setTitle(bundle.getString("title"));
         }
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity2.this, 1);
@@ -64,7 +70,7 @@ public class MainActivity2 extends AppCompatActivity {
         adapter = new MyAdapter2(MainActivity2.this, dataList);
         recyclerView.setAdapter(adapter);
 
-        databaseReference = FirebaseDatabase.getInstance().getReference("UID").child(key);
+        databaseReference = FirebaseDatabase.getInstance().getReference(uid).child(key);
         dialog.show();
         eventListener = databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -141,5 +147,32 @@ public class MainActivity2 extends AppCompatActivity {
             }
         }
         adapter.searchDataList(searchList);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.custom_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.option_1) {
+            fAuth.signOut();
+            Intent intent = new Intent(MainActivity2.this, LoginSignUpActivity.class);
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Remove ValueEventListener to prevent further callbacks
+        if (databaseReference != null && eventListener != null) {
+            databaseReference.removeEventListener(eventListener);
+        }
     }
 }

@@ -3,6 +3,8 @@ package com.example.nice_login;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -145,5 +147,24 @@ public class MainActivity extends AppCompatActivity {
         if (databaseReference != null && eventListener != null) {
             databaseReference.removeEventListener(eventListener);
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.custom_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.option_1) {
+            fAuth.signOut();
+            Intent intent = new Intent(MainActivity.this, LoginSignUpActivity.class);
+            startActivity(intent);
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

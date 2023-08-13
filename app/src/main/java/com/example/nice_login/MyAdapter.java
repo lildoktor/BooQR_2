@@ -52,18 +52,17 @@ public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
         holder.recCard.setOnClickListener(view -> {
             Intent intent = new Intent(context, MainActivity2.class);
             intent.putExtra("Key", dataList.get(holder.getAdapterPosition()).getKey());
+            intent.putExtra("title", dataList.get(holder.getAdapterPosition()).getDataTitle());
             context.startActivity(intent);
         });
 
         holder.option.setOnClickListener(view -> {
-            if (!switcher) {
+            if (!holder.edit.isShown()) {
                 holder.delete.setVisibility(View.VISIBLE);
                 holder.edit.setVisibility(View.VISIBLE);
-                switcher = true;
             } else {
                 holder.delete.setVisibility(View.GONE);
                 holder.edit.setVisibility(View.GONE);
-                switcher = false;
             }
         });
 
@@ -83,6 +82,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
             DatabaseReference reference = FirebaseDatabase.getInstance().getReference("UID");
             FirebaseStorage storage = FirebaseStorage.getInstance();
+
+            //TODO: failur
 
             StorageReference storageReference = storage.getReferenceFromUrl(dataList.get(holder.getAdapterPosition()).getDataImage());
             storageReference.delete().addOnSuccessListener(unused -> {
