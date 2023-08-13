@@ -113,7 +113,7 @@ public class UpdateActivity extends AppCompatActivity {
             Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
             uriTask.addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
-                    imageUrl = uri.toString();
+                    imageUrl = task.getResult().toString();
                     updateData();
                 } else {
                     dialog.dismiss();

@@ -3,6 +3,8 @@ package com.example.nice_login;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
@@ -15,17 +17,20 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.io.IOException;
 import java.time.Instant;
 
 public class UploadActivity2 extends AppCompatActivity {
     ImageView uploadImage;
     Button saveButton;
     EditText collectionName, bookName;
-    String imageURL, timestamp, collection, key;
+    String imageURL, timestamp, collection, key, uid;
+    FirebaseAuth mAuth;
     int pageNum;
     Uri uri;
 
@@ -34,7 +39,9 @@ public class UploadActivity2 extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload2);
 
-        uri = null;
+        mAuth = FirebaseAuth.getInstance();
+        uid = mAuth.getCurrentUser().getUid();
+
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             key = bundle.getString("Key");
@@ -50,16 +57,20 @@ public class UploadActivity2 extends AppCompatActivity {
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent data = result.getData();
-                        uri = data.getData();
+                        if (data != null) {
+                            uri = data.getData();
+                            Bitmap thumbnail = getVideoThumbnail(uri);
+                            uploadImage.setImageBitmap(thumbnail);
+                        }
                     } else {
                         Toast.makeText(UploadActivity2.this, "No Video Selected", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
         uploadImage.setOnClickListener(view -> {
-            Intent photoPicker = new Intent(Intent.ACTION_PICK);
-            photoPicker.setType("video/*");
-            activityResultLauncher.launch(photoPicker);
+            Intent videoPicker = new Intent(Intent.ACTION_PICK);
+            videoPicker.setType("video/*");
+            activityResultLauncher.launch(videoPicker);
         });
         saveButton.setOnClickListener(view -> saveData());
     }
@@ -126,5 +137,19 @@ public class UploadActivity2 extends AppCompatActivity {
                         Toast.makeText(UploadActivity2.this, "Error saving data: " + task.getException(), Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private Bitmap getVideoThumbnail(Uri videoUri) {
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        retriever.setDataSource(this, videoUri);
+
+        Bitmap bitmap = retriever.getFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+        try {
+            retriever.release();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return bitmap;
     }
 }

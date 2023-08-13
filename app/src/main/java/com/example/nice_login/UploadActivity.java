@@ -93,7 +93,7 @@ public class UploadActivity extends AppCompatActivity {
             Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
             uriTask.addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
-                    imageURL = uri.toString();
+                    imageURL = task.getResult().toString();
                     uploadData();
                 } else {
                     dialog.dismiss();

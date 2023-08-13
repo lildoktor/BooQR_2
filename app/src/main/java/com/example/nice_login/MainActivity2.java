@@ -84,8 +84,8 @@ public class MainActivity2 extends AppCompatActivity {
                         dataList.add(dataClass);
                     }
                 }
-                adapter.notifyDataSetChanged();
                 dialog.dismiss();
+                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -161,6 +161,7 @@ public class MainActivity2 extends AppCompatActivity {
         if (id == R.id.option_1) {
             fAuth.signOut();
             Intent intent = new Intent(MainActivity2.this, LoginSignUpActivity.class);
+            startActivity(intent);
             finish();
             return true;
         }
