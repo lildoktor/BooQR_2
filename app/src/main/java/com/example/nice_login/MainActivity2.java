@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,6 +33,7 @@ public class MainActivity2 extends AppCompatActivity {
     MyAdapter2 adapter;
     SearchView searchView;
     String key, uid;
+    FloatingActionMenu fam;
     FirebaseAuth fAuth;
 
     @Override
@@ -46,6 +48,7 @@ public class MainActivity2 extends AppCompatActivity {
         addDrag = findViewById(R.id.addDrag);
         recyclerView = findViewById(R.id.recyclerView);
         searchView = findViewById(R.id.search);
+        fam = findViewById(R.id.fab_menu_main2);
         searchView.clearFocus();
 
         fAuth = FirebaseAuth.getInstance();
@@ -175,5 +178,11 @@ public class MainActivity2 extends AppCompatActivity {
         if (databaseReference != null && eventListener != null) {
             databaseReference.removeEventListener(eventListener);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        fam.close(false);
     }
 }

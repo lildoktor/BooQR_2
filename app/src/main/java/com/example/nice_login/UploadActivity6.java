@@ -1,8 +1,6 @@
 package com.example.nice_login;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,18 +13,12 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-
-import java.time.Instant;
 
 public class UploadActivity6 extends AppCompatActivity {
     ImageView uploadImage;
     Button saveButton;
-    EditText collectionName, bookName;
-    String imageURL, timestamp, collection, key;
+    EditText collectionName, description;
+    String collection, key;
     int pageNum;
     Uri uri;
 
@@ -36,12 +28,11 @@ public class UploadActivity6 extends AppCompatActivity {
         setContentView(R.layout.activity_upload6);
 
         Bundle bundle = getIntent().getExtras();
-        if (bundle != null) {
-            key = bundle.getString("Key");
-        }
+        assert bundle != null;
+        key = bundle.getString("Key");
 
         uploadImage = findViewById(R.id.uploadImage);
-        bookName = findViewById(R.id.bookName);
+        description = findViewById(R.id.bookName);
         collectionName = findViewById(R.id.collectionName);
         saveButton = findViewById(R.id.saveButton);
 
@@ -50,64 +41,45 @@ public class UploadActivity6 extends AppCompatActivity {
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent data = result.getData();
-                        uri = data.getData();
-                        uploadImage.setImageURI(uri);
+                        if (data != null) {
+                            uri = data.getData();
+                            uploadImage.setImageURI(uri);
+                        }
                     } else {
                         Toast.makeText(UploadActivity6.this, "No Image Selected", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
         uploadImage.setOnClickListener(view -> {
-            Intent photoPicker = new Intent(Intent.ACTION_PICK);
-            photoPicker.setType("image/*");
-            activityResultLauncher.launch(photoPicker);
+            Intent videoPicker = new Intent(Intent.ACTION_PICK);
+            videoPicker.setType("image/*");
+            activityResultLauncher.launch(videoPicker);
         });
-        saveButton.setOnClickListener(view -> saveData());
-    }
-
-    public void saveData() {
-        if (uri == null) {
-            uri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + getResources().getResourcePackageName(R.drawable.books) + '/' + getResources().getResourceTypeName(R.drawable.books) + '/' + getResources().getResourceEntryName(R.drawable.books));
-        }
-        collection = collectionName.getText().toString();
-        pageNum = Integer.parseInt(bookName.getText().toString());
-        if (collection.isEmpty()) {
-            collectionName.setError("Enter Collection Name");
-            collectionName.requestFocus();
-            return;
-        }
-
-        timestamp = String.valueOf(Instant.now().getEpochSecond());
-        StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("UID").child(key)
-                .child(timestamp);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(UploadActivity6.this);
-        builder.setCancelable(false);
-        builder.setView(R.layout.progress_layout);
-        AlertDialog dialog = builder.create();
-        dialog.show();
-
-        storageReference.putFile(uri).addOnSuccessListener(taskSnapshot -> {
-            Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
-            while (!uriTask.isComplete()) ;
-            Uri urlImage = uriTask.getResult();
-            imageURL = urlImage.toString();
-            uploadData();
-            dialog.dismiss();
-        }).addOnFailureListener(e -> {
-            dialog.dismiss();
-            Toast.makeText(UploadActivity6.this, "Error uploading image: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        });
-    }
-
-    public void uploadData() {
-        DataClass2 dataClass = new DataClass2(5, collection, pageNum, imageURL, timestamp);
-        FirebaseDatabase.getInstance().getReference("UID").child(key).child(timestamp)
-                .setValue(dataClass).addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(UploadActivity6.this, "Saved", Toast.LENGTH_SHORT).show();
-                        finish();
+        saveButton.setOnClickListener(view -> {
+                    if (uri == null) {
+                        Toast.makeText(UploadActivity6.this, "Select an image to upload", Toast.LENGTH_SHORT).show();
+                        return;
                     }
-                }).addOnFailureListener(e -> Toast.makeText(UploadActivity6.this, "Error creating collection: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    collection = collectionName.getText().toString();
+                    if (collection.isEmpty()) {
+                        collectionName.setError("Enter Qr Code Name");
+                        collectionName.requestFocus();
+                        return;
+                    }
+                    if (description.getText().toString().isEmpty()) {
+                        pageNum = -1;
+                    } else {
+                        pageNum = Integer.parseInt(description.getText().toString());
+                    }
+                    Intent intent = new Intent(UploadActivity6.this, UploadActivity6Helper.class);
+                    intent.putExtra("Key", key);
+                    intent.putExtra("Collection", collection);
+                    intent.putExtra("PageNum", pageNum);
+                    intent.putExtra("Uri", uri.toString());
+                    startActivity(intent);
+                    finish();
+                }
+
+        );
     }
 }

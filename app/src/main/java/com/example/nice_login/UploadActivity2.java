@@ -28,10 +28,11 @@ import java.time.Instant;
 public class UploadActivity2 extends AppCompatActivity {
     ImageView uploadImage;
     Button saveButton;
-    EditText collectionName, bookName;
+    EditText collectionName, description;
     String imageURL, timestamp, collection, key, uid;
     FirebaseAuth mAuth;
     int pageNum;
+    AlertDialog dialog;
     Uri uri;
 
     @Override
@@ -48,7 +49,7 @@ public class UploadActivity2 extends AppCompatActivity {
         }
 
         uploadImage = findViewById(R.id.uploadImage);
-        bookName = findViewById(R.id.bookName);
+        description = findViewById(R.id.bookName);
         collectionName = findViewById(R.id.collectionName);
         saveButton = findViewById(R.id.saveButton);
 
@@ -82,24 +83,24 @@ public class UploadActivity2 extends AppCompatActivity {
         }
         collection = collectionName.getText().toString();
         if (collection.isEmpty()) {
-            collectionName.setError("Enter Collection Name");
+            collectionName.setError("Enter QR Name");
             collectionName.requestFocus();
             return;
         }
-        if (bookName.getText().toString().isEmpty()) {
+        if (description.getText().toString().isEmpty()) {
             pageNum = -1;
         } else {
-            pageNum = Integer.parseInt(bookName.getText().toString());
+            pageNum = Integer.parseInt(description.getText().toString());
         }
 
         timestamp = String.valueOf(Instant.now().getEpochSecond());
-        StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("UID").child(key)
+        StorageReference storageReference = FirebaseStorage.getInstance().getReference(uid).child(key)
                 .child(timestamp);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(UploadActivity2.this);
         builder.setCancelable(false);
         builder.setView(R.layout.progress_layout);
-        AlertDialog dialog = builder.create();
+        dialog = builder.create();
         dialog.show();
 
         storageReference.putFile(uri).addOnSuccessListener(taskSnapshot -> {
@@ -107,30 +108,25 @@ public class UploadActivity2 extends AppCompatActivity {
             uriTask.addOnSuccessListener(uri -> {
                 imageURL = uri.toString();
                 uploadData();
-                dialog.dismiss();
             }).addOnFailureListener(e -> {
                 dialog.dismiss();
                 Toast.makeText(UploadActivity2.this, "Error uploading video: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
-//            while (!uriTask.isComplete()) ;
-//            Uri urlImage = uriTask.getResult();
-//            imageURL = urlImage.toString();
-//            uploadData();
-//            dialog.dismiss();
         }).addOnFailureListener(e -> {
-            dialog.dismiss();
             Toast.makeText(UploadActivity2.this, "Error uploading video: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
         });
     }
 
     public void uploadData() {
         DataClass2 dataClass = new DataClass2(1, collection, pageNum, imageURL, timestamp);
-        FirebaseDatabase.getInstance().getReference("UID").child(key).child(timestamp)
+        FirebaseDatabase.getInstance().getReference(uid).child(key).child(timestamp)
                 .setValue(dataClass).addOnCompleteListener(task -> {
+                    dialog.dismiss();
                     if (task.isSuccessful()) {
                         Toast.makeText(UploadActivity2.this, "Saved", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(UploadActivity2.this, QRActivity.class);
-                        intent.putExtra("uri", "UID/" + key + "/" + timestamp);
+                        intent.putExtra("uri", uid + "/" + key + "/" + timestamp);
                         startActivity(intent);
                         finish();
                     } else {
@@ -143,7 +139,7 @@ public class UploadActivity2 extends AppCompatActivity {
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(this, videoUri);
 
-        Bitmap bitmap = retriever.getFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+        Bitmap bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
         try {
             retriever.release();
         } catch (IOException e) {

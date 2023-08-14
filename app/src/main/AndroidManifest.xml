@@ -18,6 +18,9 @@
         android:theme="@style/Theme.StoreDataRealtime"
         tools:targetApi="34">
         <activity
+            android:name=".UploadActivity6Helper"
+            android:exported="false" />
+        <activity
             android:name=".QRActivity"
             android:exported="false"
             android:label="QR" />
@@ -57,10 +60,10 @@
             android:label="Collections">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".EmailVerification"
             android:exported="false"

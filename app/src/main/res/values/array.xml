@@ -6,4 +6,37 @@
         <item>Q - 25% Data Recovery</item>
         <item>H - 30% Data Recovery</item>
     </string-array>
+
+    <string-array name="number_of_questions">
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+
+    <string-array name="correct_answer">
+        <item>A</item>
+        <item>B</item>
+        <item>C</item>
+        <item>D</item>
+        <item>E</item>
+    </string-array>
+
+    <string-array name="correct_answer_4">
+        <item>A</item>
+        <item>B</item>
+        <item>C</item>
+        <item>D</item>
+    </string-array>
+
+    <string-array name="correct_answer_3">
+        <item>A</item>
+        <item>B</item>
+        <item>C</item>
+    </string-array>
+
+    <string-array name="correct_answer_2">
+        <item>A</item>
+        <item>B</item>
+    </string-array>
 </resources>
